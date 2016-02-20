@@ -8,6 +8,7 @@ import Time exposing (..)
 import Window
 import Random
 import Debug
+import Now
 
 -- Model
 
@@ -62,11 +63,13 @@ buildAsteroid startTime =
   let
       seed0 = Random.initialSeed startTime
       random a b seed = (Random.generate (Random.float a b) seed)
-      (x, seed1) = random 0 90 seed0
-      (y, seed2) = random 0 90 seed1
-      (vx, seed3) = random -2 2 seed2
-      (vy, seed4) = random -2 2 seed3
+      (x, seed1) = random -900 900 seed0
+      (y, seed2) = random -900 900 seed1
+      (vx, seed3) = random -1 1 seed2
+      (vy, seed4) = random -1 1 seed3
       (radius, seed5) = random 75 90 seed4
+      _ = Debug.watch "GameSeed" vx
+
   in
     { x           = x
     , y           = y
@@ -75,23 +78,15 @@ buildAsteroid startTime =
     , radius      = radius
     , direction   = Right
     }
+    |> Debug.log "Asteroid"
 
 asteroid : Asteroid
 asteroid =
-  let
-      seed0 = Random.initialSeed 12348192374081273481723478123847108234
-      random a b seed = (Random.generate (Random.float a b) seed)
-      (x, seed1) = random 0 90 seed0
-      (y, seed2) = random 0 90 seed1
-      (vx, seed3) = random -0.2 0.2 seed2
-      (vy, seed4) = random -0.2 0.2 seed3
-      (radius, seed5) = random 75 90 seed4
-  in
-    { x           = x
-    , y           = y
-    , vx          = vx
-    , vy          = vy
-    , radius      = radius
+    { x           = 0
+    , y           = 0
+    , vx          = 0
+    , vy          = 0
+    , radius      = 0
     , direction   = Right
     }
 
@@ -100,7 +95,7 @@ game =
   { ship = ship
   , asteroids = []
   , state = True
-  , initialSeed = 1234812834
+  , initialSeed = (round Now.loadTime)
   }
 
 -- Update
@@ -110,7 +105,7 @@ update keys game =
   game
     |> updateSeed
     |> addAsteroids game.initialSeed
-    |> asteroidPhysics 0.01
+    |> asteroidPhysics 3.1
     |> updateShip keys
     |> shipPhysics 9.0
 
@@ -118,11 +113,12 @@ update keys game =
 addAsteroids : Int -> Model -> Model
 addAsteroids seed game =
   let
+      _ = Debug.watch "Game" game.initialSeed
       oldAsteroids = game.asteroids
       oldGame = game
       updatedGame = updateSeed game
   in
-     if List.length oldAsteroids < 10 then
+     if List.length oldAsteroids < 100 then
       { game | asteroids = List.append oldAsteroids
           [buildAsteroid (.initialSeed game)]
         }
@@ -132,7 +128,7 @@ addAsteroids seed game =
 
 updateSeed : Model -> Model
 updateSeed game =
-  { game | initialSeed = game.initialSeed + 3215}
+  { game | initialSeed = game.initialSeed + round Now.loadTime}
 
 
 updateShip: Keys -> Model -> Model
@@ -162,14 +158,17 @@ asteroidPhysics : Float -> Model -> Model
 asteroidPhysics dt game =
   let
       oldAsteroids = game.asteroids
-      ship = game.ship
   in
      { game | asteroids =
        oldAsteroids
         |> List.map (\a ->
           { asteroid |
-            x = (a.x + dt * a.vx) + (ship.x * 0.1),
-            y = (a.y + dt * a.vy) + (ship.y * 0.1)
+            x = a.x + dt * a.vx,
+            y = a.y + dt * a.vy,
+            vx = a.vx,
+            vy = a.vy,
+            radius = a.radius,
+            direction = a.direction
           }
       )}
 
@@ -204,16 +203,16 @@ asteroidsView (w', h') game =
   let
       (w, h) = (toFloat w', toFloat h')
 
-      astriodPosition asteroid =
-        (.x asteroid, .y asteroid)
+      astriodPosition a =
+        (.x a, .y a)
           |> Debug.watch "Asteroid position"
 
   in
     collage w' h'
-    (List.map (\asteroid ->
-      ngon 6 (asteroid.radius)
+    (List.map (\a ->
+      ngon 6 (a.radius)
         |> filled (rgb 255 0 255)
-        |> move (astriodPosition asteroid)
+        |> move (astriodPosition a)
       ) (game.asteroids))
 
 
@@ -228,6 +227,6 @@ main =
 input : Signal (Keys)
 input =
   let
-      delta = Signal.map (\t -> t / 20) (fps 30)
+      delta = Signal.map (\t -> t / 20) (fps 60)
   in
      Signal.sampleOn delta (Signal.map (\a -> a) Keyboard.arrows)
