@@ -11,6 +11,7 @@ import Debug
 import Now
 import Ship
 import Asteroid
+import Text
 
 
 -- MODEL
@@ -22,6 +23,7 @@ type alias Game =
   , initialSeed : Int
   , width : Int
   , height : Int
+  , score : Int
   }
 
 
@@ -32,6 +34,7 @@ initGame =
   , initialSeed = (round Now.loadTime)
   , width = 9000
   , height = 9000
+  , score = 0
   }
 
 
@@ -47,6 +50,7 @@ type Action
   | AddAsteroid Asteroid.Asteroid
   | UpdateWidthAndHeight ( Int, Int )
   | UpdateSeed
+  | UpdateScore
 
 
 update : Action -> Game -> Game
@@ -56,7 +60,23 @@ update action game =
       game
 
     UpdateShip keys ->
-      { game | ship = Ship.update (Ship.UpdateShip keys) game.ship, initialSeed = (round Now.loadTime) }
+      let
+        isKilling ship asteroid =
+          not (ship.y - ship.radius <= asteroid.y - asteroid.radius) &&
+          not (ship.x - ship.radius <= asteroid.x - asteroid.radius) &&
+          not (ship.y + ship.radius >= asteroid.y + asteroid.radius) &&
+          not (ship.x + ship.radius >= asteroid.x + asteroid.radius)
+
+        shipIsAlive =
+          case game.ship.alive of
+            True ->
+              game.asteroids
+                |> List.all (\asteroid ->
+                  not (isKilling game.ship asteroid))
+                |> Debug.watch "ISALIVE"
+            False -> False
+      in
+        { game | ship = Ship.update (Ship.UpdateShip keys shipIsAlive) game.ship, initialSeed = (round Now.loadTime) }
 
     UpdateAsteroids ->
       let
@@ -104,6 +124,12 @@ update action game =
         |> update AddAsteroids
         |> update UpdateAsteroids
 
+    UpdateScore ->
+      { game | score =
+        case game.ship.alive of
+          True -> game.score + 1
+          False -> game.score
+        }
 
 
 -- VIEW
@@ -115,6 +141,15 @@ view game =
     ( w, h ) =
       ( toFloat game.width, toFloat game.height )
 
+    scoreStyle =
+      { typeface = []
+      , height = Just 90
+      , color = (rgba 140 30 30 0.5)
+      , bold = True
+      , italic = False
+      , line = Nothing
+    }
+
     _ =
       Debug.watch "GAME"
   in
@@ -125,7 +160,11 @@ view game =
           |> filled (rgb 0 0 0 )
       , Ship.view game.ship
       , toForm (asteroidsView game)
+      , toForm (container (round w) (round h) topLeft (leftAligned (Text.style
+      scoreStyle
+      (Text.fromString (toString game.score)))))
       ]
+
 
 
 asteroidsView : Game -> Element
@@ -155,11 +194,15 @@ asteroidsView game =
 
 -- SIGNALS
 
+score : Signal Action
+score =
+  (Time.every Time.second)
+    |> Signal.map (\_ -> UpdateScore)
 
 size : Signal Action
 size =
   Signal.sampleOn
-    (Time.fps 60)
+    (Time.fps 20)
     Window.dimensions
       |> Signal.map UpdateWidthAndHeight
 
@@ -184,6 +227,7 @@ input =
     [ size
     , updateSeed
     , updateShipPosition
+    , score
     ]
 
 

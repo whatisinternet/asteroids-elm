@@ -42,7 +42,7 @@ initShip =
 
 type Action
   = NoOp
-  | UpdateShip Keys
+  | UpdateShip Keys Bool
 
 
 update : Action -> Ship -> Ship
@@ -51,12 +51,13 @@ update action ship =
     NoOp ->
       ship
 
-    UpdateShip keys ->
+    UpdateShip keys alive ->
       let
         tempShip =
           { ship | vx = toFloat keys.x, vy = toFloat keys.y }
       in
-        { ship | x = ship.x + 3.0 * tempShip.vx, y = ship.y + 3.0 * tempShip.vy }
+        { ship | x = ship.x + 3.0 * tempShip.vx, y = ship.y + 3.0 * tempShip.vy,
+        alive = alive }
 
 
 
