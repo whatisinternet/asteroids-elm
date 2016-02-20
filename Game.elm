@@ -62,38 +62,45 @@ update action game =
     UpdateShip keys ->
       let
         isKilling ship asteroid =
-          not (ship.y - ship.radius <= asteroid.y - asteroid.radius) &&
-          not (ship.x - ship.radius <= asteroid.x - asteroid.radius) &&
-          not (ship.y + ship.radius >= asteroid.y + asteroid.radius) &&
-          not (ship.x + ship.radius >= asteroid.x + asteroid.radius)
+          not (ship.y - ship.radius <= asteroid.y - asteroid.radius)
+            && not (ship.x - ship.radius <= asteroid.x - asteroid.radius)
+            && not (ship.y + ship.radius >= asteroid.y + asteroid.radius)
+            && not (ship.x + ship.radius >= asteroid.x + asteroid.radius)
 
         shipIsAlive =
-          case game.ship.alive of
-            True ->
-              game.asteroids
-                |> List.all (\asteroid ->
-                  not (isKilling game.ship asteroid))
-                |> Debug.watch "ISALIVE"
-            False -> False
+          game.asteroids
+            |> List.all
+                (\asteroid ->
+                  not (isKilling game.ship asteroid)
+                )
+            |> Debug.watch "ISALIVE"
       in
-        { game | ship = Ship.update (Ship.UpdateShip keys shipIsAlive) game.ship, initialSeed = (round Now.loadTime) }
+        case game.ship.alive of
+          True ->
+            { game | ship = Ship.update (Ship.UpdateShip keys shipIsAlive) game.ship, initialSeed = (round Now.loadTime) }
+
+          _ ->
+            game
 
     UpdateAsteroids ->
       let
         isOffCanvas a g =
-          not (a.y - a.radius > (toFloat g.height)) &&
-          not (a.x - a.radius > (toFloat g.width)) &&
-          not (a.y - a.radius < (toFloat (-1 * g.height))) &&
-          not (a.x - a.radius < (toFloat (-1 * g.width)))
-
+          not (a.y - a.radius > (toFloat g.height))
+            && not (a.x - a.radius > (toFloat g.width))
+            && not (a.y - a.radius < (toFloat (-1 * g.height)))
+            && not (a.x - a.radius < (toFloat (-1 * g.width)))
       in
-        { game | asteroids =
-          List.indexedMap (\b a->
-            if isOffCanvas a game then
-              Asteroid.update (Asteroid.UpdateAsteroid) a
-            else
-              Asteroid.initAsteroid (game.initialSeed + (round Now.loadTime)  + b) game.width game.height
-          ) game.asteroids}
+        { game
+          | asteroids =
+              List.indexedMap
+                (\b a ->
+                  if isOffCanvas a game then
+                    Asteroid.update (Asteroid.UpdateAsteroid) a
+                  else
+                    Asteroid.initAsteroid (game.initialSeed + (round Now.loadTime) + b) game.width game.height
+                )
+                game.asteroids
+        }
 
     AddAsteroid asteroid ->
       { game | asteroids = asteroid :: game.asteroids }
@@ -109,12 +116,12 @@ update action game =
                         (game.initialSeed
                           + a
                         )
-                        game.width game.height
+                        game.width
+                        game.height
                     )
         }
       else
         game
-
 
     UpdateWidthAndHeight ( width', height' ) ->
       { game | width = width', height = height' }
@@ -125,11 +132,16 @@ update action game =
         |> update UpdateAsteroids
 
     UpdateScore ->
-      { game | score =
-        case game.ship.alive of
-          True -> game.score + 1
-          False -> game.score
-        }
+      { game
+        | score =
+            case game.ship.alive of
+              True ->
+                game.score + 1
+
+              False ->
+                game.score
+      }
+
 
 
 -- VIEW
@@ -148,7 +160,7 @@ view game =
       , bold = True
       , italic = False
       , line = Nothing
-    }
+      }
 
     _ =
       Debug.watch "GAME"
@@ -157,14 +169,68 @@ view game =
       (round w)
       (round h)
       [ rect w h
-          |> filled (rgb 0 0 0 )
+          |> filled (rgb 0 0 0)
       , Ship.view game.ship
       , toForm (asteroidsView game)
-      , toForm (container (round w) (round h) topLeft (leftAligned (Text.style
-      scoreStyle
-      (Text.fromString (toString game.score)))))
+      , toForm
+          (container
+            (round w)
+            (round h)
+            topLeft
+            (leftAligned
+              (Text.style
+                scoreStyle
+                (Text.fromString (toString game.score))
+              )
+            )
+          )
+      , toForm (gameOverView game)
       ]
 
+
+gameOverView : Game -> Element
+gameOverView game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    textStyle =
+      { typeface = []
+      , height = Just 200
+      , color = (rgba 0 0 0 1.0)
+      , bold = True
+      , italic = False
+      , line = Nothing
+      }
+
+    gameAlpha =
+      case game.ship.alive of
+        True ->
+          0
+
+        _ ->
+          1
+  in
+    collage
+      (round w)
+      (round h)
+      [ rect w h
+          |> filled (rgba 200 30 30 0.6)
+          |> alpha gameAlpha
+      , toForm
+          (container
+            (round w)
+            (round h)
+            middle
+            (leftAligned
+              (Text.style
+                textStyle
+                (Text.fromString (toString ("GAME OVER Score: " ++ toString game.score)))
+              )
+            )
+            |> opacity gameAlpha
+          )
+      ]
 
 
 asteroidsView : Game -> Element
@@ -194,17 +260,19 @@ asteroidsView game =
 
 -- SIGNALS
 
+
 score : Signal Action
 score =
   (Time.every Time.second)
     |> Signal.map (\_ -> UpdateScore)
+
 
 size : Signal Action
 size =
   Signal.sampleOn
     (Time.fps 20)
     Window.dimensions
-      |> Signal.map UpdateWidthAndHeight
+    |> Signal.map UpdateWidthAndHeight
 
 
 updateShipPosition : Signal Action
@@ -221,6 +289,7 @@ updateSeed =
   Time.fps 60
     |> Signal.map (\_ -> UpdateSeed)
 
+
 input : Signal Action
 input =
   Signal.mergeMany
@@ -229,7 +298,6 @@ input =
     , updateShipPosition
     , score
     ]
-
 
 
 game : Signal Game

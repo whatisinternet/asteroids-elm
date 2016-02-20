@@ -56,8 +56,11 @@ update action ship =
         tempShip =
           { ship | vx = toFloat keys.x, vy = toFloat keys.y }
       in
-        { ship | x = ship.x + 3.0 * tempShip.vx, y = ship.y + 3.0 * tempShip.vy,
-        alive = alive }
+        { ship
+          | x = ship.x + 3.0 * tempShip.vx
+          , y = ship.y + 3.0 * tempShip.vy
+          , alive = alive
+        }
 
 
 
