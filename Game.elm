@@ -28,10 +28,10 @@ type alias Game =
 initGame : Game
 initGame =
   { ship = Ship.initShip
-  , asteroids = [ Asteroid.initAsteroid (round Now.loadTime) ]
+  , asteroids = [ Asteroid.initAsteroid (round Now.loadTime) 0 0 ]
   , initialSeed = (round Now.loadTime)
-  , width = 0
-  , height = 0
+  , width = 9000
+  , height = 9000
   }
 
 
@@ -60,12 +60,20 @@ update action game =
 
     UpdateAsteroids ->
       let
-        isOffCanvas a =
-          (a.x + a.radius > (1080))
-        filteredAsteroids =
-          List.filter (\a -> isOffCanvas a) game.asteroids
+        isOffCanvas a g =
+          not (a.y - a.radius > (toFloat g.height)) &&
+          not (a.x - a.radius > (toFloat g.width)) &&
+          not (a.y - a.radius < (toFloat (-1 * g.height))) &&
+          not (a.x - a.radius < (toFloat (-1 * g.width)))
+
       in
-        { game | asteroids = List.map (\a -> Asteroid.update (Asteroid.UpdateAsteroid) a) game.asteroids}
+        { game | asteroids =
+          List.indexedMap (\b a->
+            if isOffCanvas a game then
+              Asteroid.update (Asteroid.UpdateAsteroid) a
+            else
+              Asteroid.initAsteroid (game.initialSeed + (round Now.loadTime)  + b) game.width game.height
+          ) game.asteroids}
 
     AddAsteroid asteroid ->
       { game | asteroids = asteroid :: game.asteroids }
@@ -74,23 +82,27 @@ update action game =
       if (List.length game.asteroids) < 20 then
         { game
           | asteroids =
-              [0..20]
+              [0..(20 - (List.length game.asteroids))]
                 |> List.map
                     (\a ->
                       Asteroid.initAsteroid
                         (game.initialSeed
                           + a
                         )
+                        game.width game.height
                     )
         }
       else
         game
 
+
     UpdateWidthAndHeight ( width', height' ) ->
       { game | width = width', height = height' }
 
     UpdateSeed ->
-      { game | initialSeed = (round Now.loadTime) }
+      { game | initialSeed = game.initialSeed + (round Now.loadTime) + 1 }
+        |> update AddAsteroids
+        |> update UpdateAsteroids
 
 
 
@@ -110,7 +122,7 @@ view game =
       (round w)
       (round h)
       [ rect w h
-          |> filled (rgb 255 255 255)
+          |> filled (rgb 0 0 0 )
       , Ship.view game.ship
       , toForm (asteroidsView game)
       ]
@@ -146,8 +158,10 @@ asteroidsView game =
 
 size : Signal Action
 size =
-  Window.dimensions
-    |> Signal.map UpdateWidthAndHeight
+  Signal.sampleOn
+    (Time.fps 60)
+    Window.dimensions
+      |> Signal.map UpdateWidthAndHeight
 
 
 updateShipPosition : Signal Action
@@ -159,22 +173,10 @@ updateShipPosition =
     )
 
 
-updateAsteroids : Signal Action
-updateAsteroids =
-  Time.fps 60
-    |> Signal.map (\_ -> UpdateAsteroids)
-
-addAsteroids : Signal Action
-addAsteroids =
-  Time.fps 10
-    |> Signal.map (\_ -> AddAsteroids)
-
-
 updateSeed : Signal Action
 updateSeed =
   Time.fps 60
     |> Signal.map (\_ -> UpdateSeed)
-
 
 input : Signal Action
 input =
@@ -182,9 +184,8 @@ input =
     [ size
     , updateSeed
     , updateShipPosition
-    , addAsteroids
-    , updateAsteroids
     ]
+
 
 
 game : Signal Game

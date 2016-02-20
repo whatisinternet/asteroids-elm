@@ -20,8 +20,8 @@ type alias Asteroid =
   }
 
 
-initAsteroid : Int -> Asteroid
-initAsteroid startTime =
+initAsteroid : Int -> Int -> Int -> Asteroid
+initAsteroid startTime width height =
   let
     seed0 =
       Random.initialSeed (round (Now.loadTime) + startTime)
@@ -30,10 +30,10 @@ initAsteroid startTime =
       (Random.generate (Random.float a b) seed)
 
     ( x, seed1 ) =
-      random -900 900 seed0
+      random (toFloat (-1 * width)) (toFloat width) seed0
 
     ( y, seed2 ) =
-      random -900 900 seed1
+      random (toFloat (-1 * height)) (toFloat height) seed1
 
     ( vx, seed3 ) =
       random -1 1 seed2
@@ -42,7 +42,7 @@ initAsteroid startTime =
       random -1 1 seed3
 
     ( radius, seed5 ) =
-      random 20 190 seed4
+      random 10 190 seed4
 
     _ =
       Debug.watch "GameSeed" vx
