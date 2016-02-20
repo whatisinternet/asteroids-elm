@@ -3,6 +3,7 @@ module Game (..) where
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
+import Graphics.Input exposing (clickable)
 import Time exposing (..)
 import Window
 import Random
@@ -30,7 +31,7 @@ type alias Game =
 initGame : Game
 initGame =
   { ship = Ship.initShip
-  , asteroids = [ Asteroid.initAsteroid (round Now.loadTime) 0 0 ]
+  , asteroids = [ ]
   , initialSeed = (round Now.loadTime)
   , width = 9000
   , height = 9000
@@ -44,6 +45,7 @@ initGame =
 
 type Action
   = NoOp
+  | ResetGame
   | UpdateShip Ship.Keys
   | UpdateAsteroids
   | AddAsteroids
@@ -58,6 +60,13 @@ update action game =
   case action of
     NoOp ->
       game
+
+    ResetGame ->
+      case game.ship.alive of
+        False ->
+          initGame
+        _ ->
+          game
 
     UpdateShip keys ->
       let
@@ -77,7 +86,13 @@ update action game =
       in
         case game.ship.alive of
           True ->
-            { game | ship = Ship.update (Ship.UpdateShip keys shipIsAlive) game.ship, initialSeed = (round Now.loadTime) }
+            { game
+              | ship =
+                  Ship.update
+                    (Ship.UpdateShip keys shipIsAlive)
+                    game.ship
+              , initialSeed = (round Now.loadTime)
+            }
 
           _ ->
             game
@@ -106,10 +121,10 @@ update action game =
       { game | asteroids = asteroid :: game.asteroids }
 
     AddAsteroids ->
-      if (List.length game.asteroids) < 20 then
+      if (List.length game.asteroids) < 90 then
         { game
           | asteroids =
-              [0..(20 - (List.length game.asteroids))]
+              [0..(90 - (List.length game.asteroids))]
                 |> List.map
                     (\a ->
                       Asteroid.initAsteroid
@@ -225,12 +240,13 @@ gameOverView game =
             (leftAligned
               (Text.style
                 textStyle
-                (Text.fromString (toString ("GAME OVER Score: " ++ toString game.score)))
+                (Text.fromString ("GAME \"OVER\" \n Score: " ++ toString game.score))
               )
             )
             |> opacity gameAlpha
           )
       ]
+      |> clickable (Signal.message gameMailBox.address ResetGame)
 
 
 asteroidsView : Game -> Element
@@ -261,6 +277,11 @@ asteroidsView game =
 -- SIGNALS
 
 
+gameMailBox : Signal.Mailbox Action
+gameMailBox =
+  Signal.mailbox NoOp
+
+
 score : Signal Action
 score =
   (Time.every Time.second)
@@ -270,7 +291,7 @@ score =
 size : Signal Action
 size =
   Signal.sampleOn
-    (Time.fps 20)
+    (Time.fps 60)
     Window.dimensions
     |> Signal.map UpdateWidthAndHeight
 
@@ -294,6 +315,7 @@ input : Signal Action
 input =
   Signal.mergeMany
     [ size
+    , gameMailBox.signal
     , updateSeed
     , updateShipPosition
     , score

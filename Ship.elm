@@ -60,6 +60,7 @@ update action ship =
           | x = ship.x + 3.0 * tempShip.vx
           , y = ship.y + 3.0 * tempShip.vy
           , alive = alive
+          , radius = ship.radius + 0.01
         }
 
 
