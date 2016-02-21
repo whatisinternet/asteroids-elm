@@ -5,11 +5,9 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Input exposing (clickable)
 import Time exposing (..)
-
 import Util.Now as Now
 import Ship.Ship as Ship
-import Asteroid.Asteroid  as Asteroid
-
+import Asteroid.Asteroid as Asteroid
 import Window
 import Random
 import Keyboard
@@ -33,7 +31,7 @@ type alias Game =
 initGame : Game
 initGame =
   { ship = Ship.initShip
-  , asteroids = [ ]
+  , asteroids = []
   , initialSeed = (round Now.loadTime)
   , width = 9000
   , height = 9000
@@ -67,6 +65,7 @@ update action game =
       case game.ship.alive of
         False ->
           initGame
+
         _ ->
           game
 
