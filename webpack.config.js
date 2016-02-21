@@ -18,7 +18,7 @@ module.exports = {
       {
         test: /\.elm$/,
         include: path.join(__dirname, 'src'),
-        loader: 'elm-webpack-loader'
+        loader: 'elm-webpack'
       }
     ],
 
