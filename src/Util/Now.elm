@@ -1,4 +1,4 @@
-module Now (..) where
+module Util.Now (..) where
 
 -- Taken from http://stackoverflow.com/questions/29453679/how-do-i-get-the-current-time-in-elm
 

@@ -1,0 +1,25 @@
+{
+  "name": "asteroids-elm",
+  "version": "1.0.0",
+  "description": "An Asteroids game in Elm",
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --port 3000 --host 0.0.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whatisinternet/asteroids-elm.git"
+  },
+  "author": "Josh Teeter",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/whatisinternet/asteroids-elm/issues"
+  },
+  "dependencies": {
+    "elm-webpack-loader": "^2.0.0",
+    "file-loader": "^0.8.5",
+    "webpack": "^1.12.0",
+    "webpack-dev-server": "^1.14.0"
+  }
+}

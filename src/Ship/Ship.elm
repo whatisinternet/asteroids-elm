@@ -1,4 +1,4 @@
-module Ship (..) where
+module Ship.Ship (..) where
 
 import Color exposing (..)
 import Graphics.Collage exposing (..)

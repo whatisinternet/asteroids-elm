@@ -5,13 +5,15 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Graphics.Input exposing (clickable)
 import Time exposing (..)
+
+import Util.Now as Now
+import Ship.Ship as Ship
+import Asteroid.Asteroid  as Asteroid
+
 import Window
 import Random
 import Keyboard
 import Debug
-import Now
-import Ship
-import Asteroid
 import Text
 
 

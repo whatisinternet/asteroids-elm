@@ -1,11 +1,11 @@
-module Asteroid (..) where
+module Asteroid.Asteroid (..) where
 
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Random
 import Debug
-import Now
+import Util.Now as Now
 
 
 -- MODEL
