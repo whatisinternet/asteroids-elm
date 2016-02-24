@@ -1,0 +1,13 @@
+#!/bin/bash
+
+git branch -D gh-pages
+git checkout --quiet --orphan gh-pages
+npm install
+npm run build
+rm -r src/
+rm -r ./*.md
+rm -r ./*.json
+rm -r ./*.js
+mv dist/* .
+rm -r dist
+git commit -am ":shipit:"

@@ -1,4 +1,11 @@
-var path = require('path')
+var path = require('path'),
+    webpack = require('webpack'),
+    minimize = process.argv.indexOf('--minimize') !== -1,
+    additionalPlugins = []
+
+if (minimize) {
+  additionalPlugins.push( new webpack.optimize.UglifyJsPlugin());
+}
 
 module.exports = {
   entry: ['./src/index.js'],
@@ -28,5 +35,7 @@ module.exports = {
   devServer: {
     contentBase: './',
     stats: 'errors-only'
-  }
+  },
+
+  plugins: additionalPlugins
 };

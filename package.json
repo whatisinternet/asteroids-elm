@@ -4,7 +4,7 @@
   "description": "An Asteroids game in Elm",
   "private": true,
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --minimize",
     "dev": "webpack-dev-server --port 3000 --host 0.0.0.0"
   },
   "repository": {
