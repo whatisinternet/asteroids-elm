@@ -8,11 +8,14 @@ import Time exposing (..)
 import Util.Now as Now
 import Ship.Ship as Ship
 import Asteroid.Asteroid as Asteroid
+import Shot.Shot as Shot
 import Util.Collision as Collision
 import Window
 import Random
 import Keyboard
+import Mouse
 import Text
+import Debug
 
 
 -- MODEL
@@ -21,6 +24,7 @@ import Text
 type alias Game =
   { ship : Ship.Ship
   , asteroids : List Asteroid.Asteroid
+  , shots : List Shot.Shot
   , initialSeed : Int
   , width : Int
   , height : Int
@@ -32,6 +36,7 @@ initGame : Game
 initGame =
   { ship = Ship.initShip
   , asteroids = []
+  , shots = []
   , initialSeed = (round Now.loadTime)
   , width = 9000
   , height = 9000
@@ -53,6 +58,8 @@ type Action
   | UpdateWidthAndHeight ( Int, Int )
   | UpdateSeed
   | UpdateScore
+  | Fire ( Int, Int )
+  | UpdateShots
 
 
 update : Action -> Game -> Game
@@ -83,11 +90,11 @@ update action game =
                   Ship.update
                     (Ship.UpdateShip keys shipIsAlive)
                     game.ship
-              , initialSeed = (round Now.loadTime)
+              , initialSeed = game.initialSeed + (round Now.loadTime + 56)
             }
 
           _ ->
-            game
+            { game | shots = [] }
 
     UpdateAsteroids ->
       let
@@ -96,18 +103,40 @@ update action game =
             && not (a.x - a.radius > (toFloat g.width))
             && not (a.y - a.radius < (toFloat (-1 * g.height)))
             && not (a.x - a.radius < (toFloat (-1 * g.width)))
+
+        aliveAsteroids asteroid =
+          game.shots
+            |> Collision.hasCollisions asteroid
+            |> not
+
       in
         { game
           | asteroids =
               List.indexedMap
                 (\b a ->
-                  if isOffCanvas a game then
+                  if (isOffCanvas a game) && (aliveAsteroids a) then
                     Asteroid.update (Asteroid.UpdateAsteroid) a
                   else
-                    Asteroid.initAsteroid (game.initialSeed + (round Now.loadTime) + b) game.width game.height
+                    Asteroid.initAsteroid (game.initialSeed + (round (Now.loadTime + Now.loadTime)) + b) game.width game.height
                 )
                 game.asteroids
         }
+
+    UpdateShots ->
+      let
+        isOffCanvas a g =
+          not (a.y - a.radius > (toFloat g.height))
+            && not (a.x - a.radius > (toFloat g.width))
+            && not (a.y - a.radius < (toFloat (-1 * g.height)))
+            && not (a.x - a.radius < (toFloat (-1 * g.width)))
+
+        updateShots =
+          game.shots
+            |> List.filter (\shot -> isOffCanvas shot game)
+            |> List.map (\a -> Shot.update (Shot.UpdateShot) a)
+
+      in
+        { game | shots = updateShots}
 
     AddAsteroid asteroid ->
       { game | asteroids = asteroid :: game.asteroids }
@@ -136,6 +165,7 @@ update action game =
     UpdateSeed ->
       { game | initialSeed = game.initialSeed + (round Now.loadTime) + 1 }
         |> update AddAsteroids
+        |> update UpdateShots
         |> update UpdateAsteroids
 
     UpdateScore ->
@@ -149,6 +179,22 @@ update action game =
                 game.score
       }
 
+    Fire ( x, y ) ->
+      let
+          shot =
+            (Shot.initShot game.ship.x game.ship.y)
+
+          vxy ( x', y' ) =
+            (,) (round (toFloat x' - toFloat absPositionX))  (round (toFloat y' - toFloat absPositionY))
+
+          absPositionX =
+            (game.width // 2) + (round (game.ship.x))
+
+          absPositionY =
+            (game.height // 2) + (round (game.ship.y))
+
+      in
+        { game | shots = (shot (vxy ( x, y ))) :: game.shots }
 
 
 -- VIEW
@@ -176,6 +222,7 @@ view game =
           |> filled (rgb 0 0 0)
       , Ship.view game.ship
       , toForm (asteroidsView game)
+      , toForm (shotsView game)
       , toForm
           (container
             (round w)
@@ -260,6 +307,24 @@ asteroidsView game =
         (game.asteroids)
       )
 
+shotsView : Game -> Element
+shotsView game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    shotPosition a =
+      ( .x a, .y a )
+  in
+    collage
+      (round w)
+      (round h)
+      (List.map
+        (\a ->
+          Shot.view a
+        )
+        (game.shots)
+      )
 
 
 -- SIGNALS
@@ -283,6 +348,13 @@ size =
     Window.dimensions
     |> Signal.map UpdateWidthAndHeight
 
+fire : Signal Action
+fire =
+  Signal.sampleOn
+    (Mouse.isDown)
+    (Mouse.position
+      |> Signal.map Fire
+    )
 
 updateShipPosition : Signal Action
 updateShipPosition =
@@ -291,7 +363,6 @@ updateShipPosition =
     (Keyboard.arrows
       |> Signal.map UpdateShip
     )
-
 
 updateSeed : Signal Action
 updateSeed =
@@ -306,6 +377,7 @@ input =
     , gameMailBox.signal
     , updateSeed
     , updateShipPosition
+    , fire
     , score
     ]
 
