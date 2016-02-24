@@ -8,10 +8,10 @@ import Time exposing (..)
 import Util.Now as Now
 import Ship.Ship as Ship
 import Asteroid.Asteroid as Asteroid
+import Util.Collision as Collision
 import Window
 import Random
 import Keyboard
-import Debug
 import Text
 
 
@@ -71,19 +71,10 @@ update action game =
 
     UpdateShip keys ->
       let
-        isKilling ship asteroid =
-          not (ship.y - ship.radius <= asteroid.y - asteroid.radius)
-            && not (ship.x - ship.radius <= asteroid.x - asteroid.radius)
-            && not (ship.y + ship.radius >= asteroid.y + asteroid.radius)
-            && not (ship.x + ship.radius >= asteroid.x + asteroid.radius)
-
         shipIsAlive =
           game.asteroids
-            |> List.all
-                (\asteroid ->
-                  not (isKilling game.ship asteroid)
-                )
-            |> Debug.watch "ISALIVE"
+            |> Collision.hasCollisions game.ship
+            |> not
       in
         case game.ship.alive of
           True ->
@@ -122,10 +113,10 @@ update action game =
       { game | asteroids = asteroid :: game.asteroids }
 
     AddAsteroids ->
-      if (List.length game.asteroids) < 90 then
+      if (List.length game.asteroids) < 30 then
         { game
           | asteroids =
-              [0..(90 - (List.length game.asteroids))]
+              [0..(30 - (List.length game.asteroids))]
                 |> List.map
                     (\a ->
                       Asteroid.initAsteroid
@@ -177,9 +168,6 @@ view game =
       , italic = False
       , line = Nothing
       }
-
-    _ =
-      Debug.watch "GAME"
   in
     collage
       (round w)
@@ -258,7 +246,6 @@ asteroidsView game =
 
     asteroidPosition a =
       ( .x a, .y a )
-        |> Debug.watch "Asteroid position"
   in
     collage
       (round w)
