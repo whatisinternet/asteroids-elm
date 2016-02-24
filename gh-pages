@@ -5,9 +5,12 @@ git checkout --quiet --orphan gh-pages
 npm install
 npm run build
 rm -r src/
+rm -r elm-stuff/
+rm -r node_modules/
 rm -r ./*.md
 rm -r ./*.json
 rm -r ./*.js
 mv dist/* .
 rm -r dist
+rm -r gh-pages
 git commit -am ":shipit:"
