@@ -185,13 +185,13 @@ update action game =
             (Shot.initShot game.ship.x game.ship.y)
 
           vxy ( x', y' ) =
-            (,) (round (toFloat x' - toFloat absPositionX))  (round (toFloat y' - toFloat absPositionY))
+            (,) (x' - absPositionX) (absPositionY - y')
 
           absPositionX =
             (game.width // 2) + (round (game.ship.x))
 
           absPositionY =
-            (game.height // 2) + (round (game.ship.y))
+            (game.height // 2) - (round (game.ship.y))
 
       in
         { game | shots = (shot (vxy ( x, y ))) :: game.shots }
@@ -220,9 +220,9 @@ view game =
       (round h)
       [ rect w h
           |> filled (rgb 0 0 0)
+      , toForm (shotsView game)
       , Ship.view game.ship
       , toForm (asteroidsView game)
-      , toForm (shotsView game)
       , toForm
           (container
             (round w)
