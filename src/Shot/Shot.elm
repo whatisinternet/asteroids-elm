@@ -24,7 +24,7 @@ initShot x' y' (vx', vy') =
   , y = y'
   , vx = toFloat vx'
   , vy = toFloat vy'
-  , radius = 1.0
+  , radius = 2.0
   }
 
 
@@ -44,10 +44,19 @@ update action shot =
       shot
 
     UpdateShot ->
-      { shot
-        | x = shot.x + 0.03 * shot.vx
-        , y = shot.y + 0.03 * shot.vy
-      }
+      let
+          tempShot =
+            { shot
+            | vx = shot.vx + (shot.vx * 0.3)
+            , vy = shot.vy + (shot.vy * 0.3)
+          }
+      in
+        { shot
+          | x = shot.x + 0.003 * tempShot.vx
+          , y = shot.y + 0.003 * tempShot.vy
+          , vx = tempShot.vx
+          , vy = tempShot.vy
+        }
 
 
 
