@@ -72,3 +72,4 @@ view shot =
     ngon 4 shot.radius
       |> filled (rgb 255 0 255)
       |> move position
+      |> rotate (shot.y * 30)
