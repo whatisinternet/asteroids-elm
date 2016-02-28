@@ -29,7 +29,7 @@ module.exports = {
       },
       {
         test: /\.(png|jpg)$/,
-        include: path.join(__dirname, 'src/assets'),
+        include: path.join(__dirname, 'assets'),
         loader: "file-loader?name=[name].[ext]"
       }
     ],
