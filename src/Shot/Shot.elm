@@ -16,14 +16,14 @@ type alias Shot =
   , vx : Float
   , vy : Float
   , radius : Float
-  , red: Int
-  , green: Int
-  , blue: Int
+  , red : Int
+  , green : Int
+  , blue : Int
   }
 
 
-initShot : Float -> Float -> (Int, Int) -> Shot
-initShot x' y' (vx', vy') =
+initShot : Float -> Float -> ( Int, Int ) -> Shot
+initShot x' y' ( vx', vy' ) =
   let
     seed0 =
       Random.initialSeed (round (Now.loadTime) + vx' + vy')
@@ -39,7 +39,6 @@ initShot x' y' (vx', vy') =
 
     ( blue, seed3 ) =
       random 5 255 seed2
-
   in
     { x = x'
     , y = y'
@@ -69,15 +68,15 @@ update action shot =
 
     UpdateShot ->
       let
-          tempShot =
-            { shot
+        tempShot =
+          { shot
             | vx = shot.vx + (shot.vx * 0.3)
             , vy = shot.vy + (shot.vy * 0.3)
           }
       in
         { shot
-          | x = shot.x + 0.003 * tempShot.vx
-          , y = shot.y + 0.003 * tempShot.vy
+          | x = shot.x + 3.0e-3 * tempShot.vx
+          , y = shot.y + 3.0e-3 * tempShot.vy
           , vx = tempShot.vx
           , vy = tempShot.vy
         }

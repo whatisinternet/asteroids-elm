@@ -17,7 +17,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['', '.js', '.elm']
+    extensions: ['', '.js', '.elm', '.png', '.jpg']
   },
 
   module: {
@@ -26,7 +26,8 @@ module.exports = {
         test: /\.elm$/,
         include: path.join(__dirname, 'src'),
         loader: 'elm-webpack'
-      }
+      },
+      { test: /\.(png|jpg)$/, loader: "file-loader?name=assets/img/[name].[ext]" },
     ],
 
     noParse: /\.elm$/

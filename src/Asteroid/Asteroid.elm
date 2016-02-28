@@ -43,7 +43,6 @@ initAsteroid startTime width height =
 
     ( radius, seed5 ) =
       random 10 190 seed4
-
   in
     { x = x
     , y = y
@@ -71,16 +70,16 @@ update action asteroid =
 
     UpdateAsteroid ->
       let
-          getRadius =
-            case asteroid.radius < asteroid.maxRadius of
-              True ->
-                asteroid
-                  |> .radius
-                  |> (+) (0.7 * (abs asteroid.vx + asteroid.vy))
-              _ ->
-                asteroid
-                  |> .radius
+        getRadius =
+          case asteroid.radius < asteroid.maxRadius of
+            True ->
+              asteroid
+                |> .radius
+                |> (+) (0.7 * (abs asteroid.vx + asteroid.vy))
 
+            _ ->
+              asteroid
+                |> .radius
       in
         { asteroid
           | x = asteroid.x + 3.0 * asteroid.vx
@@ -102,7 +101,7 @@ view asteroid =
     position =
       ( .x asteroid, .y asteroid )
   in
-    ngon 5 asteroid.radius
-      |> filled (rgb 47 56 61)
+    image (round asteroid.radius) (round asteroid.radius) "../../assets/img/asteroid.png"
+      |> toForm
       |> move position
-      |> rotate (asteroid.x * 0.02)
+      |> rotate (asteroid.x * 2.0e-2)

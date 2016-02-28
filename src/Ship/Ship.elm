@@ -3,7 +3,6 @@ module Ship.Ship (..) where
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
-import Debug
 
 
 -- MODEL
@@ -60,7 +59,7 @@ update action ship =
           | x = ship.x + 3.0 * tempShip.vx
           , y = ship.y + 3.0 * tempShip.vy
           , alive = alive
-          , radius = ship.radius + 0.01
+          , radius = ship.radius + 1.0e-2
         }
 
 
@@ -73,8 +72,7 @@ view ship =
   let
     position =
       ( .x ship, .y ship )
-        |> Debug.watch "Ship Position"
   in
-    ngon 3 ship.radius
-      |> filled (rgb 167 167 167)
+    image (round ship.radius) (round ship.radius) "../../assets/img/spaceship1_xxl-orange.png"
+      |> toForm
       |> move position

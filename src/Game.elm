@@ -108,7 +108,6 @@ update action game =
           game.shots
             |> Collision.hasCollisions asteroid
             |> not
-
       in
         { game
           | asteroids =
@@ -134,9 +133,8 @@ update action game =
           game.shots
             |> List.filter (\shot -> isOffCanvas shot game)
             |> List.map (\a -> Shot.update (Shot.UpdateShot) a)
-
       in
-        { game | shots = updateShots}
+        { game | shots = updateShots }
 
     AddAsteroid asteroid ->
       { game | asteroids = asteroid :: game.asteroids }
@@ -145,7 +143,7 @@ update action game =
       if (List.length game.asteroids) < 25 then
         { game
           | asteroids =
-            [0..(24 - (List.length game.asteroids))]
+              [0..(24 - (List.length game.asteroids))]
                 |> List.map
                     (\a ->
                       Asteroid.initAsteroid
@@ -181,20 +179,20 @@ update action game =
 
     Fire ( x, y ) ->
       let
-          shot =
-            (Shot.initShot game.ship.x game.ship.y)
+        shot =
+          (Shot.initShot game.ship.x game.ship.y)
 
-          vxy ( x', y' ) =
-            (,) (x' - absPositionX) (absPositionY - y')
+        vxy ( x', y' ) =
+          (,) (x' - absPositionX) (absPositionY - y')
 
-          absPositionX =
-            (game.width // 2) + (round (game.ship.x))
+        absPositionX =
+          (game.width // 2) + (round (game.ship.x))
 
-          absPositionY =
-            (game.height // 2) - (round (game.ship.y))
-
+        absPositionY =
+          (game.height // 2) - (round (game.ship.y))
       in
         { game | shots = (shot (vxy ( x, y ))) :: game.shots }
+
 
 
 -- VIEW
@@ -299,13 +297,11 @@ asteroidsView game =
       (round h)
       (List.map
         (\a ->
-          ngon 5 a.radius
-            |> filled (rgb 47 56 61)
-            |> move (asteroidPosition a)
-            |> rotate (a.x * 0.02)
+          Asteroid.view a
         )
         (game.asteroids)
       )
+
 
 shotsView : Game -> Element
 shotsView game =
@@ -325,6 +321,7 @@ shotsView game =
         )
         (game.shots)
       )
+
 
 
 -- SIGNALS
@@ -348,6 +345,7 @@ size =
     Window.dimensions
     |> Signal.map UpdateWidthAndHeight
 
+
 fire : Signal Action
 fire =
   Signal.sampleOn
@@ -356,6 +354,7 @@ fire =
       |> Signal.map Fire
     )
 
+
 updateShipPosition : Signal Action
 updateShipPosition =
   Signal.sampleOn
@@ -363,6 +362,7 @@ updateShipPosition =
     (Keyboard.wasd
       |> Signal.map UpdateShip
     )
+
 
 updateSeed : Signal Action
 updateSeed =
