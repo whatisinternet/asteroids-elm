@@ -1,6 +1,6 @@
 # Elm Asteroids
 
-A simple asteroids clone built with [Elm](http://elm-lang.org)
+A simple asteroids like game built with [Elm](http://elm-lang.org)
 
 -----
 
@@ -21,6 +21,11 @@ A simple asteroids clone built with [Elm](http://elm-lang.org)
 ```shell
   npm run build
 ```
+
+## Art attribution
+
+Spaceship art by [KindlyFire](http://opengameart.org/content/space-ships-2)
+Asteroid art by [immersivegamer](http://opengameart.org/content/space-shooter-assets)
 
 ## Contributing
 
