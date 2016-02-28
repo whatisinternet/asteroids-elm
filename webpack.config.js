@@ -27,7 +27,11 @@ module.exports = {
         include: path.join(__dirname, 'src'),
         loader: 'elm-webpack'
       },
-      { test: /\.(png|jpg)$/, loader: "file-loader?name=assets/img/[name].[ext]" },
+      {
+        test: /\.(png|jpg)$/,
+        include: path.join(__dirname, 'src/assets'),
+        loader: "file-loader?name=[name].[ext]"
+      }
     ],
 
     noParse: /\.elm$/

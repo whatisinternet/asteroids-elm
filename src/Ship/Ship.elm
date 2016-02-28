@@ -73,6 +73,6 @@ view ship =
     position =
       ( .x ship, .y ship )
   in
-    image (round ship.radius) (round ship.radius) "../../assets/img/spaceship1_xxl-orange.png"
+    image (round ship.radius) (round ship.radius) "./assets/img/spaceship1_xxl-orange.png"
       |> toForm
       |> move position

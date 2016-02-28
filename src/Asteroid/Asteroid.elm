@@ -101,7 +101,7 @@ view asteroid =
     position =
       ( .x asteroid, .y asteroid )
   in
-    image (round asteroid.radius) (round asteroid.radius) "../../assets/img/asteroid.png"
+    image (round asteroid.radius) (round asteroid.radius) "./assets/img/asteroid.png"
       |> toForm
       |> move position
       |> rotate (asteroid.x * 2.0e-2)
