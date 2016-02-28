@@ -216,9 +216,7 @@ view game =
     collage
       (round w)
       (round h)
-      [ rect w h
-          |> filled (rgb 0 0 0)
-      , toForm (shotsView game)
+      [ toForm (shotsView game)
       , Ship.view game.ship
       , toForm (asteroidsView game)
       , toForm
@@ -274,7 +272,7 @@ gameOverView game =
             (leftAligned
               (Text.style
                 textStyle
-                (Text.fromString ("GAME \"OVER\" \n Score: " ++ toString game.score))
+                (Text.fromString ("GAME OVER \n Score: " ++ toString game.score))
               )
             )
             |> opacity gameAlpha
