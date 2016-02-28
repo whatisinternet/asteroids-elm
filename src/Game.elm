@@ -339,7 +339,7 @@ score =
 size : Signal Action
 size =
   Signal.sampleOn
-    (Time.fps 60)
+    (Time.fps 5)
     Window.dimensions
     |> Signal.map UpdateWidthAndHeight
 
