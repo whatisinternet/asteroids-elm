@@ -4,7 +4,6 @@ import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Random
-import Debug
 import Util.Now as Now
 
 
@@ -16,6 +15,7 @@ type alias Asteroid =
   , y : Float
   , vx : Float
   , vy : Float
+  , maxRadius : Float
   , radius : Float
   }
 
@@ -44,14 +44,13 @@ initAsteroid startTime width height =
     ( radius, seed5 ) =
       random 10 190 seed4
 
-    _ =
-      Debug.watch "GameSeed" vx
   in
     { x = x
     , y = y
     , vx = vx
     , vy = vy
-    , radius = radius
+    , maxRadius = radius
+    , radius = 1
     }
 
 
@@ -71,13 +70,26 @@ update action asteroid =
       asteroid
 
     UpdateAsteroid ->
-      { asteroid
-        | x = asteroid.x + 3.0 * asteroid.vx
-        , y =
-            asteroid.y
-              + 3.0
-              * asteroid.vy
-      }
+      let
+          getRadius =
+            case asteroid.radius < asteroid.maxRadius of
+              True ->
+                asteroid
+                  |> .radius
+                  |> (+) (0.7 * (abs asteroid.vx + asteroid.vy))
+              _ ->
+                asteroid
+                  |> .radius
+
+      in
+        { asteroid
+          | x = asteroid.x + 3.0 * asteroid.vx
+          , y =
+              asteroid.y
+                + 3.0
+                * asteroid.vy
+          , radius = getRadius
+        }
 
 
 
@@ -89,7 +101,6 @@ view asteroid =
   let
     position =
       ( .x asteroid, .y asteroid )
-        |> Debug.watch "Asteroid Position"
   in
     ngon 5 asteroid.radius
       |> filled (rgb 47 56 61)

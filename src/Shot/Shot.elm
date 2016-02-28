@@ -3,7 +3,8 @@ module Shot.Shot (..) where
 import Color exposing (..)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
-import Debug
+import Random
+import Util.Now as Now
 
 
 -- MODEL
@@ -15,17 +16,40 @@ type alias Shot =
   , vx : Float
   , vy : Float
   , radius : Float
+  , red: Int
+  , green: Int
+  , blue: Int
   }
 
 
 initShot : Float -> Float -> (Int, Int) -> Shot
 initShot x' y' (vx', vy') =
-  { x = x'
-  , y = y'
-  , vx = toFloat vx'
-  , vy = toFloat vy'
-  , radius = 2.0
-  }
+  let
+    seed0 =
+      Random.initialSeed (round (Now.loadTime) + vx' + vy')
+
+    random a b seed =
+      (Random.generate (Random.int a b) seed)
+
+    ( red, seed1 ) =
+      random 5 255 seed0
+
+    ( green, seed2 ) =
+      random 5 255 seed1
+
+    ( blue, seed3 ) =
+      random 5 255 seed2
+
+  in
+    { x = x'
+    , y = y'
+    , vx = toFloat vx'
+    , vy = toFloat vy'
+    , radius = 7.0
+    , red = red
+    , green = green
+    , blue = blue
+    }
 
 
 
@@ -70,6 +94,6 @@ view shot =
       ( .x shot, .y shot )
   in
     ngon 4 shot.radius
-      |> filled (rgb 255 0 255)
+      |> filled (rgb shot.red shot.green shot.blue)
       |> move position
       |> rotate (shot.y * 30)

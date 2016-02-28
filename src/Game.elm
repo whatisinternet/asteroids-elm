@@ -38,8 +38,8 @@ initGame =
   , asteroids = []
   , shots = []
   , initialSeed = (round Now.loadTime)
-  , width = 9000
-  , height = 9000
+  , width = 800
+  , height = 600
   , score = 0
   }
 
@@ -142,10 +142,10 @@ update action game =
       { game | asteroids = asteroid :: game.asteroids }
 
     AddAsteroids ->
-      if (List.length game.asteroids) < 30 then
+      if (List.length game.asteroids) < 25 then
         { game
           | asteroids =
-              [0..(30 - (List.length game.asteroids))]
+            [0..(24 - (List.length game.asteroids))]
                 |> List.map
                     (\a ->
                       Asteroid.initAsteroid
@@ -173,7 +173,7 @@ update action game =
         | score =
             case game.ship.alive of
               True ->
-                game.score + 1
+                game.score + 6
 
               False ->
                 game.score
@@ -360,7 +360,7 @@ updateShipPosition : Signal Action
 updateShipPosition =
   Signal.sampleOn
     (Time.fps 60)
-    (Keyboard.arrows
+    (Keyboard.wasd
       |> Signal.map UpdateShip
     )
 
