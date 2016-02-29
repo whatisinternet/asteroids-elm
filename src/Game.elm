@@ -29,6 +29,7 @@ type alias Game =
   , width : Int
   , height : Int
   , score : Int
+  , started: Bool
   }
 
 
@@ -41,6 +42,7 @@ initGame =
   , width = 800
   , height = 600
   , score = 0
+  , started = False
   }
 
 
@@ -50,6 +52,7 @@ initGame =
 
 type Action
   = NoOp
+  | StartGame
   | ResetGame
   | UpdateShip Ship.Keys
   | UpdateAsteroids
@@ -68,6 +71,9 @@ update action game =
     NoOp ->
       game
 
+    StartGame ->
+      { game | started = True }
+
     ResetGame ->
       case game.ship.alive of
         False ->
@@ -79,11 +85,15 @@ update action game =
     UpdateShip keys ->
       let
         shipIsAlive =
-          game.asteroids
-            |> Collision.hasCollisions game.ship
-            |> not
+          case game.started of
+            True ->
+              game.asteroids
+                |> Collision.hasCollisions game.ship
+                |> not
+            False ->
+              True
       in
-        case game.ship.alive of
+        case game.ship.alive && game.started of
           True ->
             { game
               | ship =
@@ -134,7 +144,10 @@ update action game =
             |> List.filter (\shot -> isOffCanvas shot game)
             |> List.map (\a -> Shot.update (Shot.UpdateShot) a)
       in
-        { game | shots = updateShots }
+        case game.started of
+          True ->
+            { game | shots = updateShots }
+          False -> game
 
     AddAsteroid asteroid ->
       { game | asteroids = asteroid :: game.asteroids }
@@ -169,7 +182,7 @@ update action game =
     UpdateScore ->
       { game
         | score =
-            case game.ship.alive of
+            case game.ship.alive && game.started of
               True ->
                 game.score + 6
 
@@ -191,7 +204,10 @@ update action game =
         absPositionY =
           (game.height // 2) - (round (game.ship.y))
       in
-        { game | shots = (shot (vxy ( x, y ))) :: game.shots }
+        case game.started of
+          True ->
+            { game | shots = (shot (vxy ( x, y ))) :: game.shots }
+          False -> game
 
 
 
@@ -232,7 +248,179 @@ view game =
             )
           )
       , toForm (gameOverView game)
+      , toForm (gameStartView game)
       ]
+
+elmLogo : Game -> Element
+elmLogo game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    gameAlpha =
+      case game.started of
+        True ->
+          0
+
+        _ ->
+          1
+  in
+    collage
+      (round w)
+      (round h)
+      [ polygon [(161.649, 152.782), (231.514, 82.916), (91.783, 82.916)]
+        |> filled (rgb 94 68 0)
+        |> alpha gameAlpha
+      , polygon [(8.867, 0), (79.241, 70.375), (232.213, 70.375), (161.838, 0)]
+        |> filled (rgb 50 82 23)
+        |> alpha gameAlpha
+      , polygon [(323.298, 143.724), (323.298, 0), (179.573, 0)]
+        |> filled (rgb 38 71 80)
+        |> alpha gameAlpha
+      , polygon [(152.781, 161.649), (0, 8.868), (0, 314.432)]
+        |> filled (rgb 39 35 47)
+        |> alpha gameAlpha
+      , polygon [(255.522, 246.655), (323.298, 314.432), (323.298, 178.879)]
+        |> filled (rgb 94 68 0)
+        |> alpha gameAlpha
+      , polygon [(161.649, 170.517), (8.869, 323.298), (314.43, 323.298)]
+        |> filled (rgb 38 71 80)
+        |> alpha gameAlpha
+      , square 105
+        |> filled (rgb 50 82 23)
+        |> move (245, 165)
+        |> rotate (degrees 45)
+        |> alpha gameAlpha
+      ]
+
+mouseView : Game -> Element
+mouseView game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    gameAlpha =
+      case game.started of
+        True ->
+          0
+
+        _ ->
+          1
+  in
+    collage
+      (round w)
+      (round h)
+      [ toForm (image 150 150 "./assets/img/Blank_White_Mouse.png")
+        |> alpha gameAlpha
+      ]
+
+keyboardView : Game -> Element
+keyboardView game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    gameAlpha =
+      case game.started of
+        True ->
+          0
+
+        _ ->
+          1
+  in
+    collage
+      (round w)
+      (round h)
+      [ toForm (image 100 100 "./assets/img/Keyboard_White_W.png")
+        |> alpha gameAlpha
+      , toForm (image 100 100 "./assets/img/Keyboard_White_A.png")
+        |> move (-75.0, -75)
+        |> alpha gameAlpha
+      , toForm (image 100 100 "./assets/img/Keyboard_White_S.png")
+        |> move (0, -75)
+        |> alpha gameAlpha
+      , toForm (image 100 100 "./assets/img/Keyboard_White_D.png")
+        |> move (75, -75)
+        |> alpha gameAlpha
+      ]
+
+gameStartView : Game -> Element
+gameStartView game =
+  let
+    ( w, h ) =
+      ( toFloat game.width, toFloat game.height )
+
+    titleTextStyle =
+      { typeface = []
+      , height = Just 80
+      , color = (rgba 255 255 255 0.8)
+      , bold = True
+      , italic = False
+      , line = Nothing
+      }
+
+    startTextStyle =
+      { typeface = []
+      , height = Just 20
+      , color = (rgba 255 255 255 1.0)
+      , bold = True
+      , italic = False
+      , line = Nothing
+      }
+
+    gameAlpha =
+      case game.started of
+        True ->
+          0
+
+        _ ->
+          1
+  in
+    collage
+      (round w)
+      (round h)
+      [ rect w h
+          |> filled (rgba 55 23 82 0.6)
+          |> alpha gameAlpha
+      , toForm (elmLogo game)
+        |> rotate (degrees 30)
+        |> scale 2.0
+        |> moveX (toFloat (game.width // -2))
+        |> moveY (toFloat (game.height // -3) - 60)
+      , toForm
+          (container
+            (round w)
+            (round h)
+            midLeft
+            (leftAligned
+              (Text.style
+                titleTextStyle
+                (Text.fromString ("Asteroids-elm"))
+              )
+            )
+            |> opacity gameAlpha
+          )
+      , toForm
+          (container
+            (round w)
+            (round h)
+            bottomRight
+            (rightAligned
+              (Text.style
+                startTextStyle
+                (Text.fromString ("Click to start"))
+              )
+            )
+            |> opacity gameAlpha
+          )
+      , toForm (keyboardView game)
+        |> move (w / 3, h / -4)
+      , toForm (mouseView game)
+        |> move (w / 3, h / -4)
+        |> moveX 200
+        |> moveY -50
+      ]
+      |> clickable (Signal.message gameMailBox.address StartGame)
 
 
 gameOverView : Game -> Element
@@ -251,7 +439,7 @@ gameOverView game =
       }
 
     gameAlpha =
-      case game.ship.alive of
+      case (game.ship.alive && game.started) || not game.started of
         True ->
           0
 
