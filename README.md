@@ -27,6 +27,7 @@ A simple asteroids like game built with [Elm](http://elm-lang.org)
 - Spaceship art by [KindlyFire](http://opengameart.org/content/space-ships-2)
 - Asteroid art by [immersivegamer](http://opengameart.org/content/space-shooter-assets)
 - Skybox art by [MysticMike](http://opengameart.org/content/night-sky-skybox-generator)
+- Keyboard and mouse art by [xelu](http://opengameart.org/content/free-keyboard-and-controllers-prompts-pack)
 
 ## Contributing
 
